@@ -1,0 +1,59 @@
+{
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    42
+  ],
+  "mean_gain": 6.7,
+  "positive_trials": 5,
+  "total_trials": 5,
+  "per_trial": [
+    {
+      "seed": 0,
+      "base_acc": 23.3,
+      "rag_acc": 33.3,
+      "gain": 10.0,
+      "n_images": 30,
+      "base_correct": 7,
+      "rag_correct": 10
+    },
+    {
+      "seed": 1,
+      "base_acc": 26.7,
+      "rag_acc": 30.0,
+      "gain": 3.3,
+      "n_images": 30,
+      "base_correct": 8,
+      "rag_correct": 9
+    },
+    {
+      "seed": 2,
+      "base_acc": 26.7,
+      "rag_acc": 36.7,
+      "gain": 10.0,
+      "n_images": 30,
+      "base_correct": 8,
+      "rag_correct": 11
+    },
+    {
+      "seed": 3,
+      "base_acc": 30.0,
+      "rag_acc": 36.7,
+      "gain": 6.7,
+      "n_images": 30,
+      "base_correct": 9,
+      "rag_correct": 11
+    },
+    {
+      "seed": 42,
+      "base_acc": 23.3,
+      "rag_acc": 26.7,
+      "gain": 3.3,
+      "n_images": 30,
+      "base_correct": 7,
+      "rag_correct": 8
+    }
+  ]
+}

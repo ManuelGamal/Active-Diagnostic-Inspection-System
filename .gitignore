@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Environments
+venv/
+venv_*/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Data + weights (too large for git)
+archive*/
+extracted_weights/
+checkpoints/
+models_onnx/
+
+# Generated
+*.zip
+*.pdf
+*.log
+85%
+rag_store.json
+results/
+docker/
+
+# Keep source
+!src/
+!scripts/
