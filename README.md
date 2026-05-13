@@ -47,7 +47,7 @@ Action: inspect conveyor belt at stations 2–4
 
 ## Demo
 
-![Diagnostic UI](docs/demo_screenshot.png)
+Run the server (see [Run Locally](#run-locally)) and open `http://localhost:8000/presentation.html` for the live demo with heatmap overlay and active learning UI.
 
 ## Repository Layout
 
