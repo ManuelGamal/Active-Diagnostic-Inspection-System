@@ -143,14 +143,14 @@ async def startup_event() -> None:
 
 @app.get('/')
 async def root():
-    html_path = Path(__file__).parent / 'demo_frontend.html'
+    html_path = Path(__file__).parent / 'presentation.html'
     return FileResponse(html_path, media_type='text/html') if html_path.exists() else {'status': 'not found'}
 
 
-@app.get('/presentation')
-@app.get('/presentation.html')
-async def presentation():
-    html_path = Path(__file__).parent / 'presentation.html'
+@app.get('/demo_frontend')
+@app.get('/demo_frontend.html')
+async def demo_frontend():
+    html_path = Path(__file__).parent / 'demo_frontend.html'
     return FileResponse(html_path, media_type='text/html') if html_path.exists() else {'status': 'not found'}
 
 
@@ -602,16 +602,13 @@ async def analyze_simple(req: AnalyzeRequest):
     right = float(z_map[:, W // 2:].mean())
     asym = (max(left, right) + 1e-8) / (min(left, right) + 1e-8)
 
-    # --- Build simple verdict based on z-score only ---
-    if max_z >= 3.0:
-        predicted = 'defect'
-    elif max_z >= 2.0:
-        predicted = 'suspicious'
-    else:
-        predicted = 'normal'
+    # --- Build verdict using heuristic ---
+    predicted, confidence, _ = _run_llm_diagnosis(
+        req.category, max_z, area, aspect, asym
+    )
 
     verdict = {
-        'defect_type': predicted,
+        'defect_type': predicted if predicted != 'unknown' else 'normal',
         'confidence': round(min(0.75, max_z / 5.0), 2),
         'severity': 'high' if max_z >= 4.0 else ('medium' if max_z >= 2.5 else 'low'),
         'location': 'detected region',
@@ -624,9 +621,9 @@ async def analyze_simple(req: AnalyzeRequest):
 
     # --- Generate question ---
     if max_z >= 3.0:
-        question = f"z={max_z:.1f}σ — strong anomaly in this {req.category}. Is this a defect?"
+        question = f"z={max_z:.1f}σ — strong anomaly in this {req.category}. Is this a {predicted}?"
     elif max_z >= 2.0:
-        question = f"z={max_z:.1f}σ — suspicious region in this {req.category}. Is this a defect?"
+        question = f"z={max_z:.1f}σ — suspicious region in this {req.category}. Is this a {predicted}?"
     else:
         question = f"z={max_z:.1f}σ — no strong signal. Can you see any defect in this {req.category}?"
 

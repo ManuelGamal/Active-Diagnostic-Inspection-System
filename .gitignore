@@ -31,4 +31,4 @@ docker/
 
 # Keep source
 !src/
-!scripts/
+!scripts/demo_data/

@@ -9,89 +9,84 @@
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
 .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 16px 32px; border-bottom: 1px solid #30363d; }
 .header h1 { font-size: 1.3rem; color: #58a6ff; }
-.main { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-.image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.image-grid .card { background: #161b22; border: 2px solid #30363d; border-radius: 8px; padding: 8px; cursor: pointer; transition: all .2s; text-align: center; }
-.image-grid .card:hover { border-color: #58a6ff; }
-.image-grid .card.active { border-color: #7ee787; }
-.image-grid .card img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; }
-.image-grid .card .label { font-size: .8rem; color: #8b949e; margin-top: 4px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
 .panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
-.panel h3 { color: #58a6ff; font-size: .9rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.panel h3 { color: #58a6ff; font-size: .85rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
 
-#heatmapContainer { text-align: center; }
-#heatmapContainer img { max-width: 100%; max-height: 320px; border-radius: 8px; }
+.image-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.image-grid .card { background: #161b22; border: 2px solid #30363d; border-radius: 8px; padding: 6px; cursor: pointer; transition: all .2s; text-align: center; }
+.image-grid .card:hover { border-color: #58a6ff; }
+.image-grid .card.active { border-color: #7ee787; }
+.image-grid .card img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; }
+.image-grid .card .label { font-size: .7rem; color: #8b949e; margin-top: 3px; }
 
-#reasoningChain .step { padding: 10px; border-left: 3px solid #30363d; margin-bottom: 8px; font-size: .85rem; }
-#reasoningChain .step .turn { color: #f59e0b; font-weight: 600; font-size: .75rem; }
+.mid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#heatmapContainer { text-align: center; min-height: 300px; display: flex; flex-direction: column; }
+#heatmapContainer img { max-width: 100%; max-height: 300px; border-radius: 8px; margin: auto; }
+#heatmapPlaceholder { color: #8b949e; font-size: .85rem; margin: auto; padding: 40px; }
+
+#reasoningChain { min-height: 300px; overflow-y: auto; }
+#reasoningChain .step { padding: 10px; border-left: 3px solid #30363d; margin-bottom: 6px; font-size: .82rem; }
+#reasoningChain .step .turn { color: #f59e0b; font-weight: 600; font-size: .72rem; }
 #reasoningChain .step .data { color: #e6edf3; margin-top: 2px; }
-#reasoningChain .step.verdict { border-left-color: #7ee787; background: rgba(35,134,54,.1); }
-#reasoningChain .step.verdict .turn { color: #7ee787; }
 
-#verdictDisplay { margin-top: 12px; }
 #verdictDisplay table { width: 100%; font-size: .85rem; }
-#verdictDisplay td { padding: 6px 8px; border-bottom: 1px solid #21262d; }
-#verdictDisplay td:first-child { color: #8b949e; width: 100px; }
-#verdictDisplay .defect { color: #f59e0b; font-weight: 700; font-size: 1rem; }
+#verdictDisplay td { padding: 8px 12px; border-bottom: 1px solid #21262d; }
+#verdictDisplay td:first-child { color: #8b949e; width: 110px; }
+#verdictDisplay .defect { color: #f59e0b; font-weight: 700; font-size: 1.1rem; }
 #verdictDisplay .high { color: #f85149; }
 #verdictDisplay .medium { color: #f59e0b; }
 #verdictDisplay .low { color: #7ee787; }
 
-.status-bar { padding: 10px 20px; background: #161b22; border-top: 1px solid #30363d; text-align: center; font-size: .85rem; color: #8b949e; }
+.status-bar { padding: 8px 20px; background: #161b22; border-top: 1px solid #30363d; text-align: center; font-size: .8rem; color: #8b949e; }
 .status-bar .running { color: #58a6ff; }
 .status-bar .done { color: #7ee787; }
-
-#llmPrompt { width: 100%; height: 200px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; padding: 8px; font-family: monospace; font-size: .8rem; resize: vertical; }
 </style>
 </head>
 <body>
 <div class="header"><h1>🔬 RD++ Active Diagnostic Demo</h1></div>
 
-<div class="main">
-  <div>
-    <div class="panel" style="margin-bottom:16px">
-      <h3>📷 Select Image</h3>
-      <div class="image-grid">
-        <div class="card" onclick="analyze(this,'bottle','bottle/test/broken_large/000.png')">
-          <img id="thumb_bottle" src=""><div class="label">Bottle — broken large</div>
-        </div>
-        <div class="card" onclick="analyze(this,'bottle','bottle/test/contamination/000.png')">
-          <img id="thumb_bottle2" src=""><div class="label">Bottle — contamination</div>
-        </div>
-        <div class="card" onclick="analyze(this,'capsule','capsule/test/crack/000.png')">
-          <img id="thumb_capsule" src=""><div class="label">Capsule — crack</div>
-        </div>
-        <div class="card" onclick="analyze(this,'capsule','capsule/test/poke/000.png')">
-          <img id="thumb_capsule2" src=""><div class="label">Capsule — poke</div>
-        </div>
-        <div class="card" onclick="analyze(this,'carpet','carpet/test/cut/000.png')">
-          <img id="thumb_carpet" src=""><div class="label">Carpet — cut</div>
-        </div>
-        <div class="card" onclick="analyze(this,'carpet','carpet/test/color/000.png')">
-          <img id="thumb_carpet2" src=""><div class="label">Carpet — color</div>
-        </div>
+<div class="wrap">
+  <div class="panel">
+    <h3>📷 Select Image</h3>
+    <div class="image-grid">
+      <div class="card" onclick="analyze(this,'bottle','bottle/test/broken_large/000.png')">
+        <img id="t1" src=""><div class="label">Bottle — broken large</div>
       </div>
-    </div>
-    <div class="panel" id="heatmapContainer">
-      <h3>🔥 Heatmap</h3>
-      <img id="heatmapImg" src="" style="display:none">
-      <div style="color:#8b949e;font-size:.85rem;padding:40px" id="heatmapPlaceholder">Select an image to analyze</div>
+      <div class="card" onclick="analyze(this,'bottle','bottle/test/contamination/000.png')">
+        <img id="t2" src=""><div class="label">Bottle — contamination</div>
+      </div>
+      <div class="card" onclick="analyze(this,'capsule','capsule/test/crack/000.png')">
+        <img id="t3" src=""><div class="label">Capsule — crack</div>
+      </div>
+      <div class="card" onclick="analyze(this,'capsule','capsule/test/poke/000.png')">
+        <img id="t4" src=""><div class="label">Capsule — poke</div>
+      </div>
+      <div class="card" onclick="analyze(this,'carpet','carpet/test/cut/000.png')">
+        <img id="t5" src=""><div class="label">Carpet — cut</div>
+      </div>
+      <div class="card" onclick="analyze(this,'carpet','carpet/test/color/000.png')">
+        <img id="t6" src=""><div class="label">Carpet — color</div>
+      </div>
     </div>
   </div>
 
-  <div>
-    <div class="panel" style="margin-bottom:16px">
+  <div class="mid">
+    <div class="panel" id="heatmapContainer">
+      <h3>🔥 Heatmap</h3>
+      <img id="heatmapImg" src="" style="display:none">
+      <div id="heatmapPlaceholder">Select an image</div>
+    </div>
+    <div class="panel" id="reasoningChain">
       <h3>🧠 Reasoning Chain</h3>
-      <div id="reasoningChain">
-        <div style="color:#8b949e;font-size:.85rem;padding:20px;text-align:center">Waiting for analysis...</div>
-      </div>
+      <div style="color:#8b949e;font-size:.82rem;text-align:center;padding:40px">Waiting for analysis...</div>
     </div>
-    <div class="panel" id="verdictDisplay">
-      <h3>⚖️ Verdict</h3>
-      <div id="verdictContent"><div style="color:#8b949e;font-size:.85rem;padding:10px">—</div></div>
-    </div>
+  </div>
+
+  <div class="panel" id="verdictDisplay">
+    <h3>⚖️ Verdict</h3>
+    <div id="verdictContent"><div style="color:#8b949e;font-size:.85rem;padding:10px">—</div></div>
   </div>
 </div>
 
@@ -99,93 +94,50 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; colo
 
 <script>
 const API = 'http://localhost:8000';
-
-// Preload thumbnails
 document.querySelectorAll('.card').forEach(card => {
-  const img = card.querySelector('img');
-  const match = card.getAttribute('onclick').match(/analyze\([^,]+,'([^']+)','([^']+)'\)/);
-  if (match) {
-    img.src = API + '/presentation_image?path=' + encodeURIComponent(match[2]);
-  }
+  const m = card.getAttribute('onclick').match(/analyze\([^,]+,'([^']+)','([^']+)'\)/);
+  if (m) card.querySelector('img').src = API + '/presentation_image?path=' + encodeURIComponent(m[2]);
 });
 
 async function analyze(el, category, imagePath) {
   document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  
   document.getElementById('statusBar').textContent = 'Running RD++ analysis...';
   document.getElementById('statusBar').className = 'status-bar running';
-  document.getElementById('heatmapPlaceholder').style.display = 'none';
+  document.getElementById('heatmapPlaceholder').textContent = '⏳ Analyzing...';
   document.getElementById('heatmapImg').style.display = 'none';
-  document.getElementById('reasoningChain').innerHTML = '<div style="color:#8b949e;text-align:center;padding:20px">⏳ Analyzing...</div>';
+  document.getElementById('reasoningChain').innerHTML = '<div style="color:#8b949e;text-align:center;padding:40px">⏳ Analyzing...</div>';
   document.getElementById('verdictContent').innerHTML = '<div style="color:#8b949e;padding:10px">⏳</div>';
 
   try {
-    // Step 1: Analyze (get heatmap + features)
-    const aResp = await fetch(`${API}/analyze_simple`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+    const r = await fetch(`${API}/analyze_simple`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({category, image_path: imagePath, ground_truth: ''})
     });
-    const aData = await aResp.json();
-
-    // Show heatmap
-    if (aData.heatmap_image) {
-      document.getElementById('heatmapImg').src = aData.heatmap_image;
-      document.getElementById('heatmapImg').style.display = 'block';
-    }
-
-    // Build reasoning chain
-    const z = aData.max_z || 0;
-    const v = aData.verdict || {};
-    const ct = category;
-    
-    let steps = [];
-    steps.push({turn: 'Turn 1 — RD++ Forward Pass', data: `Anomaly map generated. Peak z-score: ${z.toFixed(1)}σ`});
-    
-    let scale = z > 3 ? 'clear defect' : z > 2 ? 'suspicious' : 'normal';
-    steps.push({turn: 'Turn 2 — Z-Score Calibration', data: `Interpretation: ${scale} (threshold: 2.0σ)`});
-    
-    steps.push({turn: 'Turn 3 — Heuristic Pre-filter', data: `Top hypothesis: ${v.defect_type || 'unknown'} (confidence: ${((v.confidence||0)*100).toFixed(0)}%)`});
-    
-    steps.push({turn: 'Turn 4 — LLM Diagnosis', data: `Predicted defect: ${v.defect_type || 'unknown'}`});
-    
-    if (v.action === 'flag_human') {
-      steps.push({turn: '⚠ Flagged for Review', data: v.question || 'Low confidence — human review needed', cls: 'flag'});
-    } else {
-      steps.push({turn: '✓ Auto-Accepted', data: 'High confidence verdict', cls: 'verdict'});
-    }
-    
-    // Render reasoning chain
-    let html = '';
-    steps.forEach(s => {
-      html += `<div class="step ${s.cls||''}"><div class="turn">${s.turn}</div><div class="data">${s.data}</div></div>`;
-    });
-    document.getElementById('reasoningChain').innerHTML = html;
-
-    // Render verdict
-    let sevClass = 'medium';
-    if (v.severity === 'high') sevClass = 'high';
-    if (v.severity === 'low') sevClass = 'low';
-    
-    document.getElementById('verdictContent').innerHTML = `
-      <table>
-        <tr><td>Defect</td><td class="defect">${v.defect_type || '—'}</td></tr>
-        <tr><td>Confidence</td><td>${((v.confidence||0)*100).toFixed(0)}%</td></tr>
-        <tr><td>Severity</td><td class="${sevClass}">${v.severity || '—'}</td></tr>
-        <tr><td>Eliminated</td><td>${(v.eliminated_types||[]).join(', ') || 'none'}</td></tr>
-        <tr><td>Action</td><td>${v.action || '—'}</td></tr>
-      </table>
-    `;
-
+    const d = await r.json();
+    if (d.heatmap_image) { document.getElementById('heatmapImg').src = d.heatmap_image; document.getElementById('heatmapImg').style.display = 'block'; document.getElementById('heatmapPlaceholder').textContent = ''; }
+    const z = d.max_z || 0, v = d.verdict || {};
+    const steps = [
+      {turn: 'Turn 1 — RD++ Forward Pass', data: `Anomaly map generated. Peak z-score: ${z.toFixed(1)}σ`},
+      {turn: 'Turn 2 — Z-Score Calibration', data: `Interpretation: ${z>3?'clear defect':z>2?'suspicious':'normal'} (threshold: 2.0σ)`},
+      {turn: 'Turn 3 — Heuristic Pre-filter', data: `Top hypothesis: ${v.defect_type||'unknown'} (confidence: ${((v.confidence||0)*100).toFixed(0)}%)`},
+      {turn: 'Turn 4 — LLM Diagnosis', data: `Predicted defect: ${v.defect_type||'unknown'}`},
+      {turn: v.action==='flag_human'?'⚠ Flagged for Review':'✓ Auto-Accepted', data: v.question||'Verdict ready'},
+    ];
+    document.getElementById('reasoningChain').innerHTML = steps.map(s => `<div class="step"><div class="turn">${s.turn}</div><div class="data">${s.data}</div></div>`).join('');
+    const sev = v.severity||'medium';
+    document.getElementById('verdictContent').innerHTML = `<table>
+      <tr><td>Defect</td><td class="defect">${v.defect_type||'—'}</td></tr>
+      <tr><td>Confidence</td><td>${((v.confidence||0)*100).toFixed(0)}%</td></tr>
+      <tr><td>Severity</td><td class="${sev}">${v.severity||'—'}</td></tr>
+      <tr><td>Eliminated</td><td>${(v.eliminated_types||[]).join(', ')||'none'}</td></tr>
+      <tr><td>Action</td><td>${v.action||'—'}</td></tr>
+    </table>`;
     document.getElementById('statusBar').textContent = '✓ Analysis complete';
     document.getElementById('statusBar').className = 'status-bar done';
-
-  } catch (e) {
-    console.error(e);
-    document.getElementById('statusBar').textContent = '✗ Error: ' + (e.message || 'connection failed');
-    document.getElementById('statusBar').className = 'status-bar';
-    document.getElementById('reasoningChain').innerHTML = '<div style="color:#f85149;padding:20px">Error: ' + (e.message || 'unknown') + '</div>';
+  } catch(e) {
+    document.getElementById('statusBar').textContent = '✗ Error: ' + (e.message||'connection failed');
+    document.getElementById('reasoningChain').innerHTML = '<div style="color:#f85149;padding:20px">Error: ' + (e.message||'unknown') + '</div>';
   }
 }
 </script>
