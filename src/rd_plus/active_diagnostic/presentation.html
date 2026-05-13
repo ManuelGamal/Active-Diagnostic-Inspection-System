@@ -1,695 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Active Learning Presentation</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 20px 40px;
-            border-bottom: 2px solid #30363d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { font-size: 1.5rem; color: #58a6ff; }
-        .stats-bar {
-            display: flex;
-            gap: 30px;
-            font-size: 0.9rem;
-        }
-        .stat { color: #8b949e; }
-        .stat span { color: #7ee787; font-weight: bold; }
-        
-        .main {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 20px;
-            padding: 20px;
-            height: calc(100vh - 80px);
-        }
-        
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .image-display {
-            background: #161b22;
-            border-radius: 12px;
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #30363d;
-        }
-        
-        .image-display img {
-            max-width: 100%;
-            max-height: 320px;
-            border-radius: 8px;
-            border: 2px solid #30363d;
-        }
-        
-        .heatmap-row {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        
-        .heatmap-row img {
-            max-width: 48%;
-            max-height: 200px;
-            border-radius: 8px;
-            border: 2px solid #30363d;
-        }
-        
-        .image-info {
-            margin-top: 15px;
-            text-align: center;
-            color: #8b949e;
-        }
-        
-        .image-info .category {
-            color: #58a6ff;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        
-        .question-box {
-            background: #161b22;
-            border-radius: 12px;
-            padding: 25px;
-            border: 2px solid #f78166;
-            text-align: center;
-        }
-        
-        .question-box h3 {
-            color: #f78166;
-            margin-bottom: 15px;
-        }
-        
-        .question-text {
-            font-size: 1.3rem;
-            color: #e6edf3;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-        
-        .btn {
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-        }
-        
-        .btn-yes {
-            background: #238636;
-            color: white;
-        }
-        .btn-yes:hover { background: #2ea043; transform: scale(1.05); }
-        
-        .btn-no {
-            background: #da3633;
-            color: white;
-        }
-        .btn-no:hover { background: #f85149; transform: scale(1.05); }
-        
-        .btn-skip {
-            background: #30363d;
-            color: #8b949e;
-        }
-        .btn-skip:hover { background: #484f58; }
-        
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .accuracy-card {
-            background: #161b22;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #30363d;
-        }
-        
-        .accuracy-card h3 {
-            color: #58a6ff;
-            margin-bottom: 15px;
-        }
-        
-        .accuracy-value {
-            font-size: 3rem;
-            font-weight: bold;
-            text-align: center;
-            color: #7ee787;
-        }
-        
-        .accuracy-subtitle {
-            text-align: center;
-            color: #8b949e;
-            font-size: 0.9rem;
-        }
-        
-        .chart-container {
-            background: #161b22;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #30363d;
-            flex: 1;
-        }
-        
-        .chart-container h3 {
-            color: #58a6ff;
-            margin-bottom: 15px;
-        }
-        
-        canvas {
-            width: 100%;
-            height: 250px;
-        }
-        
-        .history-list {
-            background: #161b22;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #30363d;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .history-list h4 {
-            color: #8b949e;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-        
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-        }
-        
-        .history-item.correct {
-            background: rgba(35, 134, 54, 0.2);
-            color: #7ee787;
-        }
-        
-        .history-item.wrong {
-            background: rgba(218, 54, 51, 0.2);
-            color: #f85149;
-        }
-        
-        .progress-bar {
-            background: #30363d;
-            border-radius: 10px;
-            height: 20px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            background: linear-gradient(90deg, #238636, #7ee787);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        .start-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #0d1117;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        
-        .start-screen h1 {
-            font-size: 3rem;
-            color: #58a6ff;
-            margin-bottom: 20px;
-        }
-        
-        .start-screen p {
-            color: #8b949e;
-            margin-bottom: 40px;
-            font-size: 1.2rem;
-        }
-        
-        .start-btn {
-            padding: 20px 60px;
-            font-size: 1.5rem;
-            background: #238636;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .start-btn:hover { background: #2ea043; transform: scale(1.05); }
-        
-        .done-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #0d1117;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        
-        .done-screen h1 {
-            font-size: 3rem;
-            color: #7ee787;
-            margin-bottom: 20px;
-        }
-        
-        .final-stats {
-            font-size: 1.5rem;
-            color: #e6edf3;
-            margin-bottom: 30px;
-        }
-        
-        .keyboard-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #484f58;
-            font-size: 0.9rem;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RD++ Active Diagnostic Demo</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 16px 32px; border-bottom: 1px solid #30363d; }
+.header h1 { font-size: 1.3rem; color: #58a6ff; }
+.main { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.image-grid .card { background: #161b22; border: 2px solid #30363d; border-radius: 8px; padding: 8px; cursor: pointer; transition: all .2s; text-align: center; }
+.image-grid .card:hover { border-color: #58a6ff; }
+.image-grid .card.active { border-color: #7ee787; }
+.image-grid .card img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; }
+.image-grid .card .label { font-size: .8rem; color: #8b949e; margin-top: 4px; }
+
+.panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+.panel h3 { color: #58a6ff; font-size: .9rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+
+#heatmapContainer { text-align: center; }
+#heatmapContainer img { max-width: 100%; max-height: 320px; border-radius: 8px; }
+
+#reasoningChain .step { padding: 10px; border-left: 3px solid #30363d; margin-bottom: 8px; font-size: .85rem; }
+#reasoningChain .step .turn { color: #f59e0b; font-weight: 600; font-size: .75rem; }
+#reasoningChain .step .data { color: #e6edf3; margin-top: 2px; }
+#reasoningChain .step.verdict { border-left-color: #7ee787; background: rgba(35,134,54,.1); }
+#reasoningChain .step.verdict .turn { color: #7ee787; }
+
+#verdictDisplay { margin-top: 12px; }
+#verdictDisplay table { width: 100%; font-size: .85rem; }
+#verdictDisplay td { padding: 6px 8px; border-bottom: 1px solid #21262d; }
+#verdictDisplay td:first-child { color: #8b949e; width: 100px; }
+#verdictDisplay .defect { color: #f59e0b; font-weight: 700; font-size: 1rem; }
+#verdictDisplay .high { color: #f85149; }
+#verdictDisplay .medium { color: #f59e0b; }
+#verdictDisplay .low { color: #7ee787; }
+
+.status-bar { padding: 10px 20px; background: #161b22; border-top: 1px solid #30363d; text-align: center; font-size: .85rem; color: #8b949e; }
+.status-bar .running { color: #58a6ff; }
+.status-bar .done { color: #7ee787; }
+
+#llmPrompt { width: 100%; height: 200px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; padding: 8px; font-family: monospace; font-size: .8rem; resize: vertical; }
+</style>
 </head>
 <body>
-    <div class="start-screen" id="startScreen">
-        <h1>🎯 Active Learning Demo</h1>
-        <p>50 images | Live Q&A | Watch accuracy improve</p>
-        <button class="start-btn" onclick="startPresentation()">Start Presentation</button>
-    </div>
-    
-    <div class="done-screen" id="doneScreen">
-        <h1>✅ Presentation Complete!</h1>
-        <div class="final-stats" id="finalStats"></div>
-        <button class="start-btn" onclick="location.reload()">Restart</button>
-    </div>
-    
-    <div class="header">
-        <h1>🔬 RD++ Active Learning Pipeline</h1>
-        <div class="stats-bar">
-            <div class="stat">Images: <span id="currentIndex">0</span>/50</div>
-            <div class="stat">RAG Size: <span id="ragSize">0</span></div>
-            <div class="stat">Pending: <span id="pendingCount">0</span></div>
+<div class="header"><h1>🔬 RD++ Active Diagnostic Demo</h1></div>
+
+<div class="main">
+  <div>
+    <div class="panel" style="margin-bottom:16px">
+      <h3>📷 Select Image</h3>
+      <div class="image-grid">
+        <div class="card" onclick="analyze(this,'bottle','bottle/test/broken_large/000.png')">
+          <img id="thumb_bottle" src=""><div class="label">Bottle — broken large</div>
         </div>
-    </div>
-    
-    <div class="main">
-        <div class="left-panel">
-            <div class="image-display">
-                <img id="currentImage" src="" alt="Loading...">
-                <div class="heatmap-row">
-                    <img id="heatmapImage" src="" alt="Heatmap" style="display:none;">
-                    <div id="zScoreDisplay" style="color:#8b949e; font-size:0.9rem; text-align:center; padding:10px;"></div>
-                </div>
-                <div class="image-info">
-                    <div class="category" id="imageCategory">-</div>
-                    <div id="imagePath">-</div>
-                </div>
-            </div>
-            
-            <div class="question-box">
-                <h3>❓ Human Review Question</h3>
-                <div class="question-text" id="questionText">Loading question...</div>
-                <div class="btn-group">
-                    <button class="btn btn-yes" onclick="answer(true)">YES ✓</button>
-                    <button class="btn btn-no" onclick="answer(false)">NO ✗</button>
-                    <button class="btn btn-skip" onclick="skip()">Skip →</button>
-                </div>
-            </div>
+        <div class="card" onclick="analyze(this,'bottle','bottle/test/contamination/000.png')">
+          <img id="thumb_bottle2" src=""><div class="label">Bottle — contamination</div>
         </div>
-        
-        <div class="right-panel">
-            <div class="accuracy-card">
-                <h3>📊 Current Accuracy</h3>
-                <div class="accuracy-value" id="accuracyValue">--%</div>
-                <div class="accuracy-subtitle" id="accuracySubtitle">Waiting for data...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                </div>
-            </div>
-            
-            <div class="chart-container">
-                <h3>📈 Accuracy Over Time</h3>
-                <canvas id="accuracyChart"></canvas>
-            </div>
-            
-            <div class="history-list">
-                <h4>Recent Answers</h4>
-                <div id="historyList"></div>
-            </div>
+        <div class="card" onclick="analyze(this,'capsule','capsule/test/crack/000.png')">
+          <img id="thumb_capsule" src=""><div class="label">Capsule — crack</div>
         </div>
+        <div class="card" onclick="analyze(this,'capsule','capsule/test/poke/000.png')">
+          <img id="thumb_capsule2" src=""><div class="label">Capsule — poke</div>
+        </div>
+        <div class="card" onclick="analyze(this,'carpet','carpet/test/cut/000.png')">
+          <img id="thumb_carpet" src=""><div class="label">Carpet — cut</div>
+        </div>
+        <div class="card" onclick="analyze(this,'carpet','carpet/test/color/000.png')">
+          <img id="thumb_carpet2" src=""><div class="label">Carpet — color</div>
+        </div>
+      </div>
     </div>
+    <div class="panel" id="heatmapContainer">
+      <h3>🔥 Heatmap</h3>
+      <img id="heatmapImg" src="" style="display:none">
+      <div style="color:#8b949e;font-size:.85rem;padding:40px" id="heatmapPlaceholder">Select an image to analyze</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel" style="margin-bottom:16px">
+      <h3>🧠 Reasoning Chain</h3>
+      <div id="reasoningChain">
+        <div style="color:#8b949e;font-size:.85rem;padding:20px;text-align:center">Waiting for analysis...</div>
+      </div>
+    </div>
+    <div class="panel" id="verdictDisplay">
+      <h3>⚖️ Verdict</h3>
+      <div id="verdictContent"><div style="color:#8b949e;font-size:.85rem;padding:10px">—</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar">Select an image to begin</div>
+
+<script>
+const API = 'http://localhost:8000';
+
+// Preload thumbnails
+document.querySelectorAll('.card').forEach(card => {
+  const img = card.querySelector('img');
+  const match = card.getAttribute('onclick').match(/analyze\([^,]+,'([^']+)','([^']+)'\)/);
+  if (match) {
+    img.src = API + '/presentation_image?path=' + encodeURIComponent(match[2]);
+  }
+});
+
+async function analyze(el, category, imagePath) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  
+  document.getElementById('statusBar').textContent = 'Running RD++ analysis...';
+  document.getElementById('statusBar').className = 'status-bar running';
+  document.getElementById('heatmapPlaceholder').style.display = 'none';
+  document.getElementById('heatmapImg').style.display = 'none';
+  document.getElementById('reasoningChain').innerHTML = '<div style="color:#8b949e;text-align:center;padding:20px">⏳ Analyzing...</div>';
+  document.getElementById('verdictContent').innerHTML = '<div style="color:#8b949e;padding:10px">⏳</div>';
+
+  try {
+    // Step 1: Analyze (get heatmap + features)
+    const aResp = await fetch(`${API}/analyze_simple`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({category, image_path: imagePath, ground_truth: ''})
+    });
+    const aData = await aResp.json();
+
+    // Show heatmap
+    if (aData.heatmap_image) {
+      document.getElementById('heatmapImg').src = aData.heatmap_image;
+      document.getElementById('heatmapImg').style.display = 'block';
+    }
+
+    // Build reasoning chain
+    const z = aData.max_z || 0;
+    const v = aData.verdict || {};
+    const ct = category;
     
-    <div class="keyboard-hint">Keyboard: Y = Yes, N = No, Space = Skip</div>
+    let steps = [];
+    steps.push({turn: 'Turn 1 — RD++ Forward Pass', data: `Anomaly map generated. Peak z-score: ${z.toFixed(1)}σ`});
     
-    <script>
-        const API_BASE = 'http://localhost:8000';
-        
-        let images = [];
-        let currentIndex = 0;
-        let answered = 0;
-        let correct = 0;
-        let totalWithGroundTruth = 0;
-        let correctGroundTruth = 0;
-        let accuracyHistory = [];
-        let gtAccuracyHistory = [];
-        let currentCaseId = null;
-        let currentQuestion = '';
-        
-        // Pre-defined test images that will trigger flags
-        const TEST_IMAGES = [
-            { category: 'bottle', path: 'bottle/test/broken_large/000.png', ground_truth: 'broken_large' },
-            { category: 'bottle', path: 'bottle/test/broken_large/001.png', ground_truth: 'broken_large' },
-            { category: 'bottle', path: 'bottle/test/broken_small/000.png', ground_truth: 'broken_small' },
-            { category: 'bottle', path: 'bottle/test/broken_small/001.png', ground_truth: 'broken_small' },
-            { category: 'bottle', path: 'bottle/test/contamination/000.png', ground_truth: 'contamination' },
-            { category: 'bottle', path: 'bottle/test/contamination/001.png', ground_truth: 'contamination' },
-            { category: 'capsule', path: 'capsule/test/crack/000.png', ground_truth: 'crack' },
-            { category: 'capsule', path: 'capsule/test/crack/001.png', ground_truth: 'crack' },
-            { category: 'capsule', path: 'capsule/test/poke/000.png', ground_truth: 'poke' },
-            { category: 'capsule', path: 'capsule/test/poke/001.png', ground_truth: 'poke' },
-            { category: 'capsule', path: 'capsule/test/scratch/000.png', ground_truth: 'scratch' },
-            { category: 'capsule', path: 'capsule/test/scratch/001.png', ground_truth: 'scratch' },
-            { category: 'carpet', path: 'carpet/test/cut/000.png', ground_truth: 'cut' },
-            { category: 'carpet', path: 'carpet/test/cut/001.png', ground_truth: 'cut' },
-            { category: 'carpet', path: 'carpet/test/color/000.png', ground_truth: 'color' },
-            { category: 'carpet', path: 'carpet/test/color/001.png', ground_truth: 'color' },
-            { category: 'carpet', path: 'carpet/test/hole/000.png', ground_truth: 'hole' },
-            { category: 'carpet', path: 'carpet/test/hole/001.png', ground_truth: 'hole' },
-            { category: 'hazelnut', path: 'hazelnut/test/crack/000.png', ground_truth: 'crack' },
-            { category: 'hazelnut', path: 'hazelnut/test/crack/001.png', ground_truth: 'crack' },
-            { category: 'hazelnut', path: 'hazelnut/test/hole/000.png', ground_truth: 'hole' },
-            { category: 'hazelnut', path: 'hazelnut/test/hole/001.png', ground_truth: 'hole' },
-            { category: 'leather', path: 'leather/test/cut/000.png', ground_truth: 'cut' },
-            { category: 'leather', path: 'leather/test/cut/001.png', ground_truth: 'cut' },
-            { category: 'leather', path: 'leather/test/fold/000.png', ground_truth: 'fold' },
-            { category: 'leather', path: 'leather/test/fold/001.png', ground_truth: 'fold' },
-            { category: 'leather', path: 'leather/test/poke/000.png', ground_truth: 'poke' },
-            { category: 'leather', path: 'leather/test/poke/001.png', ground_truth: 'poke' },
-            { category: 'pill', path: 'pill/test/crack/000.png', ground_truth: 'crack' },
-            { category: 'pill', path: 'pill/test/crack/001.png', ground_truth: 'crack' },
-            { category: 'pill', path: 'pill/test/color/000.png', ground_truth: 'color' },
-            { category: 'pill', path: 'pill/test/color/001.png', ground_truth: 'color' },
-            { category: 'pill', path: 'pill/test/contamination/000.png', ground_truth: 'contamination' },
-            { category: 'pill', path: 'pill/test/contamination/001.png', ground_truth: 'contamination' },
-            // Repeat for 50 total
-            { category: 'bottle', path: 'bottle/test/broken_large/002.png', ground_truth: 'broken_large' },
-            { category: 'bottle', path: 'bottle/test/broken_small/002.png', ground_truth: 'broken_small' },
-            { category: 'bottle', path: 'bottle/test/contamination/002.png', ground_truth: 'contamination' },
-            { category: 'capsule', path: 'capsule/test/crack/002.png', ground_truth: 'crack' },
-            { category: 'capsule', path: 'capsule/test/poke/002.png', ground_truth: 'poke' },
-            { category: 'carpet', path: 'carpet/test/cut/002.png', ground_truth: 'cut' },
-            { category: 'carpet', path: 'carpet/test/color/002.png', ground_truth: 'color' },
-            { category: 'hazelnut', path: 'hazelnut/test/hole/002.png', ground_truth: 'hole' },
-            { category: 'leather', path: 'leather/test/cut/002.png', ground_truth: 'cut' },
-            { category: 'leather', path: 'leather/test/poke/002.png', ground_truth: 'poke' },
-            { category: 'pill', path: 'pill/test/crack/002.png', ground_truth: 'crack' },
-            { category: 'pill', path: 'pill/test/color/002.png', ground_truth: 'color' },
-            { category: 'bottle', path: 'bottle/test/broken_large/003.png', ground_truth: 'broken_large' },
-            { category: 'bottle', path: 'bottle/test/broken_small/003.png', ground_truth: 'broken_small' },
-            { category: 'capsule', path: 'capsule/test/scratch/002.png', ground_truth: 'scratch' },
-            { category: 'carpet', path: 'carpet/test/hole/003.png', ground_truth: 'hole' },
-        ];
-        
-        // Use first 50
-        images = TEST_IMAGES.slice(0, 50);
-        
-        // Canvas setup
-        let chartCanvas = document.getElementById('accuracyChart');
-        let chartCtx = chartCanvas.getContext('2d');
-        
-        function drawChart() {
-            chartCtx.fillStyle = '#161b22';
-            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
-            
-            if (accuracyHistory.length < 2 && gtAccuracyHistory.length < 2) return;
-            
-            // Draw grid
-            chartCtx.strokeStyle = '#30363d';
-            chartCtx.lineWidth = 1;
-            for (let i = 0; i <= 4; i++) {
-                let y = 20 + (i * 50);
-                chartCtx.beginPath();
-                chartCtx.moveTo(30, y);
-                chartCtx.lineTo(350, y);
-                chartCtx.stroke();
-            }
-            
-            // Y-axis labels
-            chartCtx.fillStyle = '#8b949e';
-            chartCtx.font = '10px sans-serif';
-            for (let i = 0; i <= 4; i++) {
-                let y = 20 + (i * 50);
-                let val = 100 - (i * 25);
-                chartCtx.fillText(val + '%', 5, y + 4);
-            }
-            
-            let maxPoints = 50;
-            let xStep = 320 / (maxPoints - 1);
-            
-            function drawLine(data, color, label) {
-                if (data.length < 2) return;
-                chartCtx.strokeStyle = color;
-                chartCtx.lineWidth = 2;
-                chartCtx.beginPath();
-                data.forEach((acc, i) => {
-                    let x = 30 + (i * xStep);
-                    let y = 220 - (acc * 2);
-                    if (i === 0) chartCtx.moveTo(x, y);
-                    else chartCtx.lineTo(x, y);
-                });
-                chartCtx.stroke();
-                chartCtx.fillStyle = color;
-                data.forEach((acc, i) => {
-                    let x = 30 + (i * xStep);
-                    let y = 220 - (acc * 2);
-                    chartCtx.beginPath();
-                    chartCtx.arc(x, y, 4, 0, Math.PI * 2);
-                    chartCtx.fill();
-                });
-                // Label
-                chartCtx.fillStyle = color;
-                chartCtx.font = '11px sans-serif';
-                chartCtx.fillText(label, 250, 20 + data.length * 3);
-            }
-            
-            drawLine(gtAccuracyHistory, '#58a6ff', 'Real Accuracy');
-            drawLine(accuracyHistory, '#7ee787', 'User Accuracy');
-        }
-        
-        async function startPresentation() {
-            document.getElementById('startScreen').style.display = 'none';
-            await loadCurrentImage();
-            updateStats();
-        }
-        
-        async function loadCurrentImage() {
-            if (currentIndex >= images.length) {
-                showDone();
-                return;
-            }
-            
-            let img = images[currentIndex];
-            document.getElementById('currentImage').src = `${API_BASE}/presentation_image?path=${encodeURIComponent(img.path)}`;
-            document.getElementById('imageCategory').textContent = img.category.toUpperCase();
-            document.getElementById('imagePath').textContent = img.path.split('/').pop();
-            
-            // Analyze this image
-            await analyzeImage(img);
-        }
-        
-        async function analyzeImage(imgData) {
-            try {
-                // Get analysis from server
-                const analyzeResp = await fetch(`${API_BASE}/analyze_simple`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        category: imgData.category,
-                        image_path: imgData.path,
-                        ground_truth: imgData.ground_truth
-                    })
-                });
-                
-                const analyzeData = await analyzeResp.json();
-                
-                // Track real accuracy against ground truth
-                if (analyzeData.correct !== null && analyzeData.correct !== undefined) {
-                    totalWithGroundTruth++;
-                    if (analyzeData.correct) correctGroundTruth++;
-                    gtAccuracyHistory.push(Math.round((correctGroundTruth / totalWithGroundTruth) * 100));
-                    updateStats();
-                }
-                
-                // Show heatmap and z-score
-                if (analyzeData.heatmap_image) {
-                    document.getElementById('heatmapImage').src = analyzeData.heatmap_image;
-                    document.getElementById('heatmapImage').style.display = 'inline';
-                }
-                const maxZ = analyzeData.max_z || 0;
-                document.getElementById('zScoreDisplay').textContent = `z = ${maxZ.toFixed(1)}σ`;
-                
-                // Always show the human question
-                if (analyzeData.verdict && analyzeData.verdict.question) {
-                    document.getElementById('questionText').textContent = analyzeData.verdict.question;
-                    currentCaseId = analyzeData.case_id;
-                    currentQuestion = analyzeData.verdict.question;
-                } else {
-                    document.getElementById('questionText').textContent = 'No question available';
-                    currentCaseId = null;
-                }
-            } catch (e) {
-                console.error('Analysis error:', e);
-                document.getElementById('questionText').textContent = 'Error analyzing image';
-                setTimeout(() => nextImage(), 1500);
-            }
-        }
-        
-        async function answer(isYes) {
-            if (!currentCaseId) {
-                nextImage();
-                return;
-            }
-            
-            answered++;
-            let isCorrect = isYes; // For defect images, YES means "yes this is a defect"
-            
-            // Update accuracy
-            if (isCorrect) correct++;
-            let accuracy = (correct / answered) * 100;
-            accuracyHistory.push(accuracy);
-            
-            // Send feedback to server
-            try {
-                await fetch(`${API_BASE}/feedback`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        case_id: currentCaseId,
-                        human_answer: isYes ? 'yes' : 'no'
-                    })
-                });
-            } catch (e) {
-                console.error('Feedback error:', e);
-            }
-            
-            // Update UI
-            updateStats();
-            addHistoryItem(isCorrect, isYes);
-            drawChart();
-            
-            nextImage();
-        }
-        
-        function skip() {
-            nextImage();
-        }
-        
-        async function nextImage() {
-            currentIndex++;
-            await loadCurrentImage();
-            updateStats();
-        }
-        
-        async function updateStats() {
-            document.getElementById('currentIndex').textContent = Math.min(currentIndex + 1, images.length);
-            document.getElementById('pendingCount').textContent = images.length - currentIndex;
-            
-            // Fetch actual RAG size from server
-            try {
-                const resp = await fetch(`${API_BASE}/rag/summary`);
-                const data = await resp.json();
-                document.getElementById('ragSize').textContent = (data.rag && data.rag.total_cases) || 0;
-            } catch {
-                document.getElementById('ragSize').textContent = '?';
-            }
-            
-            if (answered > 0 || totalWithGroundTruth > 0) {
-                let userAcc = answered > 0 ? Math.round((correct / answered) * 100) : '--';
-                let realAcc = totalWithGroundTruth > 0 ? Math.round((correctGroundTruth / totalWithGroundTruth) * 100) : '--';
-                document.getElementById('accuracyValue').textContent = realAcc !== '--' ? realAcc + '%' : '--';
-                document.getElementById('accuracySubtitle').innerHTML = 
-                    `Real: ${realAcc}% (${correctGroundTruth}/${totalWithGroundTruth}) | User: ${userAcc}% (${correct}/${answered})`;
-                if (totalWithGroundTruth > 0) {
-                    document.getElementById('progressFill').style.width = (totalWithGroundTruth / images.length * 100) + '%';
-                }
-            }
-        }
-        
-        function addHistoryItem(isCorrect, userAnswer) {
-            let list = document.getElementById('historyList');
-            let item = document.createElement('div');
-            item.className = 'history-item ' + (isCorrect ? 'correct' : 'wrong');
-            item.innerHTML = `<span>#${answered}</span><span>${userAnswer ? 'YES' : 'NO'}</span>`;
-            list.insertBefore(item, list.firstChild);
-            
-            // Keep only last 10
-            while (list.children.length > 10) {
-                list.removeChild(list.lastChild);
-            }
-        }
-        
-        function showDone() {
-            document.getElementById('doneScreen').style.display = 'flex';
-            let accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
-            document.getElementById('finalStats').innerHTML = `
-                Answered: ${answered} / 50<br>
-                Correct: ${correct}<br>
-                Final Accuracy: ${accuracy}%
-            `;
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'y') answer(true);
-            else if (e.key.toLowerCase() === 'n') answer(false);
-            else if (e.key === ' ') { e.preventDefault(); skip(); }
-        });
-        
-        // Initial chart draw
-        setTimeout(drawChart, 100);
-    </script>
+    let scale = z > 3 ? 'clear defect' : z > 2 ? 'suspicious' : 'normal';
+    steps.push({turn: 'Turn 2 — Z-Score Calibration', data: `Interpretation: ${scale} (threshold: 2.0σ)`});
+    
+    steps.push({turn: 'Turn 3 — Heuristic Pre-filter', data: `Top hypothesis: ${v.defect_type || 'unknown'} (confidence: ${((v.confidence||0)*100).toFixed(0)}%)`});
+    
+    steps.push({turn: 'Turn 4 — LLM Diagnosis', data: `Predicted defect: ${v.defect_type || 'unknown'}`});
+    
+    if (v.action === 'flag_human') {
+      steps.push({turn: '⚠ Flagged for Review', data: v.question || 'Low confidence — human review needed', cls: 'flag'});
+    } else {
+      steps.push({turn: '✓ Auto-Accepted', data: 'High confidence verdict', cls: 'verdict'});
+    }
+    
+    // Render reasoning chain
+    let html = '';
+    steps.forEach(s => {
+      html += `<div class="step ${s.cls||''}"><div class="turn">${s.turn}</div><div class="data">${s.data}</div></div>`;
+    });
+    document.getElementById('reasoningChain').innerHTML = html;
+
+    // Render verdict
+    let sevClass = 'medium';
+    if (v.severity === 'high') sevClass = 'high';
+    if (v.severity === 'low') sevClass = 'low';
+    
+    document.getElementById('verdictContent').innerHTML = `
+      <table>
+        <tr><td>Defect</td><td class="defect">${v.defect_type || '—'}</td></tr>
+        <tr><td>Confidence</td><td>${((v.confidence||0)*100).toFixed(0)}%</td></tr>
+        <tr><td>Severity</td><td class="${sevClass}">${v.severity || '—'}</td></tr>
+        <tr><td>Eliminated</td><td>${(v.eliminated_types||[]).join(', ') || 'none'}</td></tr>
+        <tr><td>Action</td><td>${v.action || '—'}</td></tr>
+      </table>
+    `;
+
+    document.getElementById('statusBar').textContent = '✓ Analysis complete';
+    document.getElementById('statusBar').className = 'status-bar done';
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('statusBar').textContent = '✗ Error: ' + (e.message || 'connection failed');
+    document.getElementById('statusBar').className = 'status-bar';
+    document.getElementById('reasoningChain').innerHTML = '<div style="color:#f85149;padding:20px">Error: ' + (e.message || 'unknown') + '</div>';
+  }
+}
+</script>
 </body>
 </html>
