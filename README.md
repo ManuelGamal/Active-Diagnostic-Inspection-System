@@ -47,7 +47,9 @@ Action: inspect conveyor belt at stations 2–4
 
 ## Demo
 
-Run the server (see [Run Locally](#run-locally)) and open `http://localhost:8000/presentation.html` for the live demo with heatmap overlay and active learning UI.
+![Diagnostic UI](docs/demo_screenshot.png)
+
+Run the server (see [Run Locally](#run-locally)) and open `http://localhost:8000/` for the live demo with heatmap overlay and active learning UI.
 
 ## Repository Layout
 
@@ -56,8 +58,7 @@ Run the server (see [Run Locally](#run-locally)) and open `http://localhost:8000
 - `data/`: MVTec AD dataset (download, see Setup)
 - `weights/`: RD++ pretrained weights (download, see Setup)
 - `utils/`, `dataset/`: RD++ runtime dependencies
-- `scripts/smoke_test.py`: end-to-end API smoke test
-- `run_demo.ps1`: local server launcher
+- `scripts/eval_seed_validation.py`: 5-seed RAG gain validation
 
 ## Local Setup
 
@@ -71,46 +72,19 @@ Download RD++ weights from [Google Drive](https://drive.google.com/drive/folders
 
 ### 3. Install
 
-```powershell
-# from repo root
+```bash
 python -m venv .venv
-.\.venv\Scripts\pip install -r requirements.txt
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ## Run Locally
 
-Set environment variables pointing to your dataset and weights:
-
-```powershell
-$env:RD_DATA_DIR = ".\data"
-$env:RD_WEIGHTS_DIR = ".\weights"
-.\run_demo.ps1
+```bash
+RD_DATA_DIR="./data" python -m src.rd_plus.active_diagnostic.demo_server
 ```
 
-Server: `http://localhost:8000`
-
-## Verify End-to-End
-
-```powershell
-.\.venv_conda\Scripts\python.exe scripts\smoke_test.py
-```
-
-Expected output:
-
-```text
-smoke_ok
-```
-
-## Docker Deployment
-
-```powershell
-cd docker
-docker compose up --build
-```
-
-Then verify:
-
-- `http://localhost:8000/health`
+Server: `http://localhost:8000/`
 
 ## Environment Variables
 
