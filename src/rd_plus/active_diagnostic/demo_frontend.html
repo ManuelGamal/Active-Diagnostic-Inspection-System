@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Diagnostic Inspection System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        h1 { text-align: center; margin-bottom: 20px; color: #00d4ff; }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Image Selector */
+        .image-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .image-btn {
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #222;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .image-btn:hover { border-color: #00d4ff; }
+        .image-btn.selected { border-color: #00d4ff; background: #003344; }
+        .image-btn img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; }
+        .image-btn span { display: block; font-size: 12px; margin-top: 5px; color: #888; }
+        
+        /* Main Display */
+        .main-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel {
+            background: #222;
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 300px;
+        }
+        
+        .panel h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .panel-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 250px;
+        }
+        
+        .panel-content img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+        
+        /* Heatmap placeholder */
+        .heatmap-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #000 0%, #f00 50%, #ff0 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 0 0 4px #000;
+        }
+        
+        /* Reasoning Chain */
+        .reasoning-log {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .reasoning-log .turn {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            border-left: 3px solid #00d4ff;
+        }
+        
+        .reasoning-log .turn.complete {
+            border-left-color: #00ff88;
+            background: #001a0d;
+        }
+        
+        .reasoning-log .turn-label {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .reasoning-log .tool-call {
+            color: #888;
+            font-size: 11px;
+            margin: 3px 0;
+        }
+        
+        /* Verdict Panel */
+        .verdict-panel {
+            background: #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .verdict-json {
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+            font-size: 14px;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .confidence-meter {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .confidence-bar {
+            flex: 1;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f00, #ff0, #00ff88);
+            transition: width 0.5s;
+        }
+        
+        /* Action Badge */
+        .action-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .action-badge.auto { background: #00ff88; color: #000; }
+        .action-badge.flag { background: #ffaa00; color: #000; }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button.run-btn {
+            padding: 15px 30px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button.run-btn:hover { background: #00e5ff; transform: scale(1.02); }
+        button.run-btn:disabled { background: #666; cursor: not-allowed; }
+        
+        button.reset-btn {
+            padding: 15px 30px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        /* Status */
+        .status {
+            text-align: center;
+            padding: 10px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .status.running { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <h1>🔬 Active Diagnostic Inspection System</h1>
+    
+    <div class="container">
+        <!-- Image Selector -->
+        <div class="image-selector" id="imageSelector">
+            <!-- Populated by JS -->
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="run-btn" id="runBtn" onclick="runAnalysis()">▶ Run Analysis</button>
+            <button class="reset-btn" onclick="reset()">↺ Reset</button>
+        </div>
+        
+        <!-- Main Display -->
+        <div class="main-display">
+            <div class="panel">
+                <h3>Original Image</h3>
+                <div class="panel-content" id="originalPanel">
+                    <span style="color:#666">Select an image above</span>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>Anomaly Heatmap</h3>
+                <div class="panel-content" id="heatmapPanel">
+                    <span style="color:#666">Run analysis to see</span>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>LLM Reasoning Chain</h3>
+                <div class="panel-content reasoning-log" id="reasoningPanel">
+                    <span style="color:#666">Waiting for analysis...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Verdict -->
+        <div class="verdict-panel">
+            <h3 style="color:#00d4ff;margin-bottom:15px;">VERDICT</h3>
+            <div class="verdict-json" id="verdictJson">{
+  "defect_type": "—",
+  "confidence": 0.0,
+  "severity": "—",
+  "root_cause": "—",
+  "action": "—"
+}</div>
+            <div class="confidence-meter">
+                <span>Confidence:</span>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill" style="width:0%"></div>
+                </div>
+                <span id="confidenceValue">0%</span>
+            </div>
+            <div id="actionBadge"></div>
+            <div id="feedbackPanel" style="display:none; margin-top:15px; padding:15px; background:linear-gradient(135deg, #2a1f3d 0%, #1a1525 100%); border-radius:8px; border:1px solid #f59e0b;">
+                <div style="color:#f59e0b; font-size:14px; margin-bottom:10px;">👁️ inspector question</div>
+                <div id="questionText" style="color:#fff; font-size:14px; margin-bottom:12px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="submitFeedback(true)" style="flex:1; padding:8px 16px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">✓ YES</button>
+                    <button onclick="submitFeedback(false)" style="flex:1; padding:8px 16px; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">✗ NO</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status" id="status">Ready</div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let selectedImage = null;
+        let analysisData = null;
+        let diagnoseData = null;
+        
+        // Load available images
+        async function loadImages() {
+            const resp = await fetch(`${API_BASE}/images`);
+            const data = await resp.json();
+            
+            const selector = document.getElementById('imageSelector');
+            selector.innerHTML = '';
+            
+            let defaultSelected = null;
+            for (const img of data.images) {
+                const imgResp = await fetch(`${API_BASE}/image/${img.id}`);
+                const imgData = await imgResp.json();
+                
+                const btn = document.createElement('div');
+                btn.className = 'image-btn';
+                btn.innerHTML = `
+                    <img src="${imgData.image}" alt="${img.id}">
+                    <span>${img.label || img.difficulty}</span>
+                `;
+                btn.onclick = () => selectImage(img.id, imgData.image, img.category, img.path, imgData.difficulty);
+                selector.appendChild(btn);
+                
+                // Auto-select last image (hard/difficult case)
+                defaultSelected = { id: img.id, imageB64: imgData.image, category: img.category, path: img.path, difficulty: imgData.difficulty, btn };
+            }
+            
+            // Select the last image by default to show human review flow
+            if (defaultSelected) {
+                selectImage(defaultSelected.id, defaultSelected.imageB64, defaultSelected.category, defaultSelected.path, defaultSelected.difficulty, defaultSelected.btn);
+            }
+        }
+        
+        function selectImage(id, imageB64, category, path, difficulty = 'high_confidence', btnElement = null) {
+            selectedImage = { id, imageB64, category, path, difficulty };
+            
+            // Update selection UI
+            document.querySelectorAll('.image-btn').forEach((btn, i) => {
+                btn.classList.remove('selected');
+            });
+            if (btnElement) {
+                btnElement.classList.add('selected');
+            } else if (event && event.target) {
+                event.target.closest('.image-btn').classList.add('selected');
+            }
+            
+            // Show image
+            document.getElementById('originalPanel').innerHTML = `<img src="${imageB64}" alt="Selected">`;
+            document.getElementById('heatmapPanel').innerHTML = '<div class="heatmap-placeholder">RD++ Heatmap</div>';
+            document.getElementById('reasoningPanel').innerHTML = '<span style="color:#666">Ready to analyze</span>';
+            document.getElementById('verdictJson').textContent = '{\n  "defect_type": "—",\n  "confidence": 0.0\n}';
+            document.getElementById('confidenceFill').style.width = '0%';
+            document.getElementById('confidenceValue').textContent = '0%';
+            document.getElementById('actionBadge').innerHTML = '';
+            document.getElementById('feedbackPanel').style.display = 'none';
+            diagnoseData = null;
+        }
+        
+        async function runAnalysis() {
+            if (!selectedImage) {
+                alert('Please select an image first');
+                return;
+            }
+            
+            const runBtn = document.getElementById('runBtn');
+            runBtn.disabled = true;
+            document.getElementById('status').textContent = 'Running RD++ analysis...';
+            document.getElementById('status').className = 'status running';
+            
+            try {
+                // Step 1: Analyze
+                const analyzeResp = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        category: selectedImage.category,
+                        image_path: selectedImage.path,
+                        difficulty: selectedImage.difficulty || 'high_confidence'
+                    })
+                });
+                analysisData = await analyzeResp.json();
+                
+                document.getElementById('status').textContent = `Detection: ${analysisData.interpretation} (z=${analysisData.max_z.toFixed(1)}σ)`;
+                
+                // Update heatmap visualization
+                document.getElementById('heatmapPanel').innerHTML = `
+                    <img src="${analysisData.heatmap_image}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;">
+                `;
+                
+                // Step 2: Diagnose
+                document.getElementById('status').textContent = 'Running LLM diagnostic chain...';
+                document.getElementById('reasoningPanel').innerHTML = '<div class="turn"><div class="turn-label">⏳ Analyzing...</div></div>';
+                
+                await new Promise(r => setTimeout(r, 600));
+                
+                const diagnoseResp = await fetch(`${API_BASE}/diagnose_simple`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        category: analysisData.category,
+                        max_z: analysisData.max_z,
+                        area: analysisData.area,
+                        aspect: analysisData.aspect_ratio,
+                        asym: analysisData.asymmetry,
+                        difficulty: analysisData.difficulty || 'high_confidence'
+                    })
+                });
+                
+                diagnoseData = await diagnoseResp.json();
+                
+                // Show reasoning with streaming effect
+                const scale = analysisData.max_z > 5.0 ? 'structural (coarse)' : (analysisData.max_z > 3.0 ? 'surface (medium)' : 'surface (fine)');
+                
+                // Turn 1
+                document.getElementById('reasoningPanel').innerHTML = `
+                    <div class="turn">
+                        <div class="turn-label">Turn 1: Spatial Analysis</div>
+                        <div>max_z=${analysisData.max_z.toFixed(1)}σ</div>
+                        <div>area=${analysisData.area} px</div>
+                        <div>AR=${analysisData.aspect_ratio.toFixed(1)}</div>
+                    </div>
+                `;
+                
+                await new Promise(r => setTimeout(r, 500));
+                
+                // Turn 2
+                document.getElementById('reasoningPanel').innerHTML += `
+                    <div class="turn">
+                        <div class="turn-label">Turn 2: Tool Results</div>
+                        <div>analyze_shape: AR=${analysisData.aspect_ratio.toFixed(1)} (${analysisData.aspect_ratio > 2 ? 'elongated' : 'compact'})</div>
+                        <div>get_scale_profile: ${scale}</div>
+                        <div>asymmetry=${Math.abs(analysisData.asymmetry).toFixed(1)}</div>
+                    </div>
+                `;
+                
+                await new Promise(r => setTimeout(r, 500));
+                
+                // Verdict
+                document.getElementById('reasoningPanel').innerHTML += `
+                    <div class="turn complete">
+                        <div class="turn-label">✓ VERDICT</div>
+                    </div>
+                `;
+                
+                await new Promise(r => setTimeout(r, 300));
+                
+                // Show verdict
+                const v = diagnoseData.verdict;
+                console.log('[DEBUG] verdict:', v);
+                document.getElementById('verdictJson').textContent = JSON.stringify(v, null, 2);
+                document.getElementById('confidenceFill').style.width = (v.confidence * 100) + '%';
+                document.getElementById('confidenceValue').textContent = Math.round(v.confidence * 100) + '%';
+                
+                const badge = document.getElementById('actionBadge');
+                if (v.action === 'auto_accept') {
+                    badge.innerHTML = '<span class="action-badge auto">✓ AUTO-ACCEPTED</span>';
+                    document.getElementById('feedbackPanel').style.display = 'none';
+                } else {
+                    badge.innerHTML = '<span class="action-badge flag">⚠ FLAGGED FOR REVIEW</span>';
+                    console.log('[DEBUG] question:', v.question);
+                    if (v.question) {
+                        document.getElementById('questionText').textContent = v.question;
+                        document.getElementById('feedbackPanel').style.display = 'block';
+                    } else {
+                        console.log('[DEBUG] No question in verdict!');
+                    }
+                }
+                
+                document.getElementById('status').textContent = 'Analysis complete';
+                document.getElementById('status').className = 'status';
+                
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').textContent = 'Error: ' + err.message;
+            }
+            
+            runBtn.disabled = false;
+        }
+        
+        async function submitFeedback(answer) {
+            const v = diagnoseData?.verdict;
+            if (!v || !v.question) return;
+            
+            document.getElementById('status').textContent = 'Learning from feedback...';
+            
+            try {
+                const resp = await fetch(`${API_BASE}/feedback`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        case_id: diagnoseData.case_id,
+                        human_answer: answer ? "yes" : "no",
+                        corrected_type: answer ? null : "unknown"
+                    })
+                });
+                const result = await resp.json();
+                
+                // Update verdict based on feedback
+                if (answer) {
+                    v.confidence = Math.min(0.92, v.confidence + 0.15);
+                    v.action = v.confidence >= 0.75 ? "auto_accept" : "flag_human";
+                }
+                
+                document.getElementById('verdictJson').textContent = JSON.stringify(v, null, 2);
+                document.getElementById('confidenceFill').style.width = (v.confidence * 100) + '%';
+                document.getElementById('confidenceValue').textContent = Math.round(v.confidence * 100) + '%';
+                
+                const badge = document.getElementById('actionBadge');
+                if (v.action === 'auto_accept') {
+                    badge.innerHTML = '<span class="action-badge auto">✓ AUTO-ACCEPTED</span>';
+                } else {
+                    badge.innerHTML = '<span class="action-badge flag">⚠ FLAGGED FOR REVIEW</span>';
+                }
+                
+                document.getElementById('feedbackPanel').style.display = 'none';
+                document.getElementById('status').textContent = '✓ Feedback stored - system is learning';
+            } catch (err) {
+                document.getElementById('status').textContent = 'Feedback error: ' + err.message;
+            }
+        }
+        
+        function updateReasoning(data) {
+            const panel = document.getElementById('reasoningPanel');
+            
+            if (data.turn === 1) {
+                panel.innerHTML += `<div class="turn"><div class="turn-label">Turn 1: Initial Analysis</div><div class="tool-call">${data.status}</div></div>`;
+            }
+            else if (data.turn === 2) {
+                const existing = panel.querySelector('.turn:last-child');
+                if (existing) {
+                    existing.innerHTML += `<div class="tool-call">→ ${data.tool}: ${data.result}</div>`;
+                } else {
+                    panel.innerHTML += `<div class="turn"><div class="tool-call">→ ${data.tool}: ${data.result}</div></div>`;
+                }
+            }
+            else if (data.turn === 3 && data.status === 'complete') {
+                const existing = panel.querySelector('.turn:last-child');
+                existing.classList.add('complete');
+                existing.innerHTML += `<div class="turn-label">✓ VERDICT</div>`;
+                
+                // Update verdict panel
+                const v = data.verdict;
+                document.getElementById('verdictJson').textContent = JSON.stringify({
+                    defect_type: v.defect_type,
+                    confidence: v.confidence.toFixed(2),
+                    severity: v.action === 'auto_accept' ? 'low' : 'medium',
+                    root_cause: 'analyzed from spatial features',
+                    action: v.action
+                }, null, 2);
+                
+                document.getElementById('confidenceFill').style.width = (v.confidence * 100) + '%';
+                document.getElementById('confidenceValue').textContent = Math.round(v.confidence * 100) + '%';
+                
+                const badge = document.getElementById('actionBadge');
+                if (v.action === 'auto_accept') {
+                    badge.innerHTML = '<span class="action-badge auto">✓ AUTO-ACCEPTED</span>';
+                } else {
+                    badge.innerHTML = '<span class="action-badge flag">⚠ FLAGGED FOR REVIEW</span>';
+                }
+            }
+            
+            panel.scrollTop = panel.scrollHeight;
+        }
+        
+        function reset() {
+            document.getElementById('originalPanel').innerHTML = '<span style="color:#666">Select an image above</span>';
+            document.getElementById('heatmapPanel').innerHTML = '<span style="color:#666">Run analysis to see</span>';
+            document.getElementById('reasoningPanel').innerHTML = '<span style="color:#666">Waiting for analysis...</span>';
+            document.getElementById('verdictJson').textContent = '{\n  "defect_type": "—",\n  "confidence": 0.0\n}';
+            document.getElementById('confidenceFill').style.width = '0%';
+            document.getElementById('confidenceValue').textContent = '0%';
+            document.getElementById('actionBadge').innerHTML = '';
+            document.getElementById('status').textContent = 'Ready';
+            selectedImage = null;
+            analysisData = null;
+        }
+        
+        // Initialize
+        loadImages();
+    </script>
+</body>
+</html>

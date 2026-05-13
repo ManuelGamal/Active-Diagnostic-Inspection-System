@@ -143,7 +143,8 @@ async def startup_event() -> None:
 
 @app.get('/')
 async def root():
-    return {'status': 'RD++ Active Diagnostic API', 'docs': '/docs'}
+    html_path = Path(__file__).parent / 'demo_frontend.html'
+    return FileResponse(html_path, media_type='text/html') if html_path.exists() else {'status': 'not found'}
 
 
 @app.get('/presentation')
@@ -220,7 +221,9 @@ async def get_image_by_id(img_id: str):
     img_path = DATA_DIR / mapping[img_id]
     if not img_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(img_path, media_type='image/png')
+    with open(img_path, 'rb') as f:
+        img_data = f.read()
+    return {'image': "data:image/png;base64," + base64.b64encode(img_data).decode('utf-8')}
 
 
 @app.get('/raw_image/{path:path}')
